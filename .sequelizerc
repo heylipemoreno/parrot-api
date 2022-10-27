@@ -1,0 +1,7 @@
+var path = require("path");
+
+module.exports = {
+    config: path.resolve("dist", "infra", "config", "config.js"),
+    "migrations-path": path.resolve("dist", "migrations"),
+    "seeders-path": path.resolve("dist", "seeders"),
+};
