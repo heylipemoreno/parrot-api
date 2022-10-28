@@ -13,28 +13,27 @@ export class AuthController {
 
     if(!(email && password)) {
       return res.status(404).send("Insira um e-mail ou senha.")
-  }
+    }
 
   let user: User
 
   try {
       user = await userRepository.findOneOrFail({where: {email}})
   } catch (error) {
-      return res.status(401).send("E-mail não encontrado.")
+      return res.status(400).send("E-mail não encontrado.")
   }
 
   if (!bcrypt.compareSync(password, user.password)) {
-    return res.status(401).send("E-mail ou senha incorretos.")
+    return res.status(401).send("E-mail ou senha inválidos.")
   }
 
   let userId = await userRepository.findOneOrFail({where: {email}})
 
-  const token = jwt.sign(
-    {id: user.id, name: user.name},
-    config.jwtSecret,
-    {expiresIn: "1h"}
-)
+    const token = jwt.sign(
+      {id: user.id, name: user.name},
+      config.jwtSecret
+    )
 
-  return res.json({token: token, "id": userId.id})
-}
-}
+    return res.json({token: token, "id": userId.id})
+  }
+};
