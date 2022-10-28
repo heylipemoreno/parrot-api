@@ -17,6 +17,10 @@ export default {
                 type: DataTypes.STRING(45),
             },
 
+            apartment: {
+                type: DataTypes.INTEGER,
+            },
+
             senha: {
                 type: DataTypes.STRING(120),
             },
