@@ -1,5 +1,7 @@
 import { Response, Request } from "express";
 import { User } from "../../entities/User";
+import jwt from "jsonwebtoken";
+import config from "../../infra/config/config";
 import bcrypt from "bcryptjs";
 import { validate } from "class-validator";
 import { userRepository } from "../../repositories/userRepository";
@@ -7,12 +9,12 @@ import { QueryFailedError, EntityNotFoundError } from "typeorm";
 
 export class UserController {
   static async createUser(req: Request, res: Response) {
-    const { name, email, password, apartment } = req.body;
-    const encryptedPw = bcrypt.hashSync(password, 10);
+    const { nome, email, senha, apartment } = req.body;
+    const encryptedPw = bcrypt.hashSync(senha, 10);
     const user: User = userRepository.create({
-      name,
+      nome,
       email,
-      password: encryptedPw,
+      senha: encryptedPw,
       apartment,
     });
 
@@ -32,10 +34,10 @@ export class UserController {
   }
 
   static async deleteUser(req: Request, res: Response) {
-    const id = req.params.id;
+    const idUser = req.params.idUser;
     let user: User;
     try {
-      user = await userRepository.findOneOrFail({ where: { id: Number(id) } });
+      user = await userRepository.findOneOrFail({ where: { idUser: Number(idUser) } });
     } catch (error) {
       if (error instanceof EntityNotFoundError)
         return res.status(404).send("Usuário não encontrado.");
@@ -43,7 +45,7 @@ export class UserController {
     }
 
     try {
-      userRepository.delete(id);
+      userRepository.delete(idUser);
     } catch (error) {
       if (error instanceof QueryFailedError)
         return res.status(400).json(error.message);
@@ -54,20 +56,20 @@ export class UserController {
   }
 
   static async editUser(req: Request, res: Response) {
-    const id = req.params.id;
+    const idUser = req.params.idUser;
 
-    const { name, email, apartment, password } = req.body;
+    const { nome, email, apartment, senha } = req.body;
     let user: User;
     try {
-      user = await userRepository.findOneOrFail({ where: { id: Number(id) } });
+      user = await userRepository.findOneOrFail({ where: { idUser: Number(idUser) } });
     } catch (error) {
       if (error instanceof EntityNotFoundError)
         return res.status(404).send("Usuário não encontrado.");
       return res.status(500).json(error);
     }
 
-    if (name) {
-      user.name = name;
+    if (nome) {
+      user.nome = nome;
     }
     if (email) {
       user.email = email;
@@ -75,8 +77,8 @@ export class UserController {
     if (apartment) {
       user.apartment = apartment;
     }
-    if (password) {
-      user.password = bcrypt.hashSync(password, 10);
+    if (senha) {
+      user.senha = bcrypt.hashSync(senha, 10);
     }
 
     const errors = await validate(user);
@@ -99,7 +101,7 @@ export class UserController {
     let users: Array<User> = [];
     try {
       users = await userRepository.find({
-        select: ["id", "name", "email", "apartment"],
+        select: ["idUser", "nome", "email", "apartment"],
       });
     } catch (error) {
       if (error instanceof EntityNotFoundError)
@@ -110,12 +112,12 @@ export class UserController {
   }
 
   static async getOneById(req: Request, res: Response) {
-    const id = req.params.id;
+    const idUser = req.params.idUser;
     let user: User;
     try {
       user = await userRepository.findOneOrFail({
-        where: { id: Number(id) },
-        select: ["id", "name", "email", "apartment"],
+        where: { idUser: Number(idUser) },
+        select: ["idUser", "nome", "email", "apartment"],
       });
     } catch (error) {
       if (error instanceof EntityNotFoundError)

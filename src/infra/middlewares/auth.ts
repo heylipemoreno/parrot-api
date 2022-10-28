@@ -1,22 +1,30 @@
-import { Request, Response, NextFunction } from "express";
-import * as jwt from "jsonwebtoken";
+import { NextFunction, Request, Response } from "express";
 import config from "../config/config";
+import * as jwt from "jsonwebtoken";
 
-export const auth = async (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
-  let jwtPayload;
 
-  if (!authHeader) {
-    return res.status(401).json({ message: "É necessário inserir um token." });
-  }
+export const auth = (req: Request, res: Response, next: NextFunction) => {
+    const { authorization } = req.headers;
 
-  // Bearer 32423b4bjk324b23
-  const [, token] = authHeader.split(" ");
+    if(!authorization) {
+        return res.status(403).json({ message: "Usuário não autorizado." });
+    }
 
-  try {
-    await jwt.verify(token, config.jwtSecret);
+    const token = authorization.split(" ")[1];
+
+    let jwtPayLoad;
+
+    try {
+        jwtPayLoad = <any>jwt.verify(token, config.jwtSecret)
+        res.locals.jwtPayLoad = jwtPayLoad;
+    } catch (error) {
+        res.status(401).send;
+    }
+
+    const { idUser, email } = jwtPayLoad;
+    const newToken = jwt.sign({ idUser, email }, config.jwtSecret, {expiresIn: "24h"});
+
+    res.setHeader("token", newToken);
+
     next();
-  } catch (error) {
-    return res.status(401).json({ message: "É necessário inserir um token." });
-  }
-};
+}

@@ -14,7 +14,7 @@ export class PostController {
     let user: User;
     try {
       user = await userRepository.findOneOrFail({
-        where: { id: Number(idUser) },
+        where: { idUser: Number(idUser) },
       });
     } catch (error) {
       if (error instanceof EntityNotFoundError)
@@ -60,7 +60,7 @@ export class PostController {
     let user: User;
     try {
       user = await userRepository.findOneOrFail({
-        where: { id: Number(idUser) },
+        where: { idUser: Number(idUser) },
       });
     } catch (error) {
       if (error instanceof EntityNotFoundError)
@@ -69,7 +69,7 @@ export class PostController {
     }
     let allPostsByUser: Array<Post>;
     try {
-      allPostsByUser = await postRepository.find({ where: { user_id: {id: Number(idUser)}} });
+      allPostsByUser = await postRepository.find({ where: { user_id: {idUser: Number(idUser)}} });
     } catch (error) {
       return res.status(500).json(error);
     }
