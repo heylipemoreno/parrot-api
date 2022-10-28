@@ -1,39 +1,34 @@
-import { Response, Request } from "express";
+import { Request, Response } from "express";
+import config from "../../infra/config/config";
+import jwt from "jsonwebtoken";
 import { User } from "../../entities/User";
-import bcrypt from "bcryptjs";
 import { userRepository } from "../../repositories/userRepository";
-import * as jwt from "jsonwebtoken"
-import config from "../../infra/config/config"
 
 export class AuthController {
-  
-   static async login(req: Request, res: Response) {
+    static async login(req: Request, res: Response) {
+        
+        let { email, senha } = req.body;
 
-    const { email, password } = req.body;
+        const userExists = await userRepository.findOneBy({ email });
 
-    if(!(email && password)) {
-      return res.status(404).send("Insira um e-mail ou senha.")
+        if((!userExists && senha)) {
+            return res.status(400).send("Usuário ou senha inválidos.");
+        }
+
+        let user: User;
+
+        try {
+            user = await userRepository.findOneOrFail({ where: { email }});
+        } catch (error) {
+            return res.status(401).send("Usuário não encontrado.");
+        }
+
+        if(!user.UnencryptedPassword(senha)) {
+            return res.status(401).send("Usuário ou senha inválidos.");
+        }
+
+        const token = jwt.sign({ idUser: user.idUser, email: user.email}, config.jwtSecret, {expiresIn: "24h"});
+
+        return res.json(token);
     }
-
-  let user: User
-
-  try {
-      user = await userRepository.findOneOrFail({where: {email}})
-  } catch (error) {
-      return res.status(400).send("E-mail não encontrado.")
-  }
-
-  if (!bcrypt.compareSync(password, user.password)) {
-    return res.status(401).send("E-mail ou senha inválidos.")
-  }
-
-  let userId = await userRepository.findOneOrFail({where: {email}})
-
-    const token = jwt.sign(
-      {id: user.id, name: user.name},
-      config.jwtSecret
-    )
-
-    return res.json({token: token, "id": userId.id})
-  }
 };

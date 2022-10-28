@@ -1,4 +1,5 @@
 import { Post } from "./Post";
+import bcrypt from "bcryptjs";
 import {
   Column,
   Entity,
@@ -10,43 +11,44 @@ import {
 } from "typeorm";
 import { Length, IsNotEmpty, IsInt, IsEmail, Min, Max } from "class-validator";
 
-@Entity("users")
+@Entity("user")
 @Unique(["email"])
 export class User {
   @PrimaryGeneratedColumn()
-  id: number;
+  idUser: number;
 
   @Column()
-  @Length(2, 20)
-  @IsNotEmpty()
-  name: string;
+  @Length(4, 70)
+  nome: string;
 
-  @Column()
+  @Column({ unique: true })
+  @Length(4, 45)
   @IsEmail()
-  @IsNotEmpty()
   email: string;
 
   @Column()
-  @IsInt()
-  @IsNotEmpty()
-  @Min(0)
-  @Max(10000)
   apartment: number;
 
   @Column()
-  @IsNotEmpty()
-  password: string;
+  @Length(5, 120)
+  senha: string;
 
-  @CreateDateColumn({
-    nullable: false
-  })
+  @Column()
+  @CreateDateColumn()
   created_at: Date;
 
-  @UpdateDateColumn({
-    nullable: false
-  })
+  @Column()
+  @UpdateDateColumn()
   updated_at: Date;
 
   @OneToMany(() => Post, (post) => post.user_id)
-  posts: Post[];
+  post: Post[];
+
+  passwordHash() {
+    this.senha = bcrypt.hashSync(this.senha, 10)
+}
+
+UnencryptedPassword(UnencryptedPassword: string) {
+    return bcrypt.compareSync(UnencryptedPassword, this.senha)
+}
 }

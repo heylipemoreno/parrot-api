@@ -10,10 +10,10 @@ import {
 } from "typeorm";
 import { Length, IsNotEmpty } from "class-validator";
 
-@Entity("posts")
+@Entity("post")
 export class Post {
   @PrimaryGeneratedColumn()
-  id: number;
+  idPost: number;
 
   @Column()
   @Length(1, 300)
@@ -30,7 +30,7 @@ export class Post {
   })
   updated_at: Date;
 
-  @ManyToOne(() => User, (user) => user.posts)
+  @ManyToOne(() => User, (user) => user.post)
   @JoinColumn({ name: "user_id" })
   user_id: User;
 }
